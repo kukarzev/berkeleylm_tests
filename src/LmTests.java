@@ -5,8 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -22,12 +22,18 @@ public class LmTests {
 		
 		boolean isGoogleBinary = false;
 		String vocabFile = null;
-		String binaryFile = "/home/kukarzev/github/berkeleylm/examples/big_test.binary";
-		List<String> files = Collections.singletonList("-");
 		
+		//String binaryFile = "/home/kukarzev/github/berkeleylm/examples/big_test.binary";
+		String binaryFile = "/home/kukarzev/github/berkeleylm/examples/google_books_3gram_06mar2017v1.binary";
+		
+		//List<String> files = Collections.singletonList("-");
+		List<String> files = new ArrayList<>(Arrays.asList("/home/kukarzev/github/berkeleylm/examples/test.txt"));
+		System.out.println("Text: from files "+files);
+		System.out.println("Loading LM from "+binaryFile+"...");
 		NgramLanguageModel<String> lm = readBinary(isGoogleBinary, vocabFile, binaryFile);
-		computeProb(files, lm);
-		
+		System.out.println("LM loaded.");
+		double _prob = computeProb(files, lm);
+		System.out.println("Probability: "+_prob);
 	}
 
 	
@@ -41,11 +47,13 @@ public class LmTests {
 		double logProb = 0.0;
 		for (String file : files) {
 			Logger.startTrack("Scoring file " + file + "; current log probability is " + logProb);
+			System.out.println("Scoring file " + file + "; current log probability is " + logProb);
 			final InputStream is = (file.equals("-")) ? System.in : (file.endsWith(".gz") ? new GZIPInputStream(new FileInputStream(file))
 				: new FileInputStream(file));
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(is)));
 			for (String line : Iterators.able(IOUtils.lineIterator(reader))) {
 				List<String> words = Arrays.asList(line.trim().split("\\s+"));
+				System.out.println("words: "+ words);
 				logProb += lm.scoreSentence(words);
 			}
 			Logger.endTrack();
